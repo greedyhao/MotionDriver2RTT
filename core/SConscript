@@ -1,0 +1,39 @@
+from building import *
+import rtconfig
+
+# get current dir path
+cwd     = GetCurrentDir()
+
+# init src and inc vars
+inc = []
+src = []
+# libs = 'libmpllib.lib'
+# LIBPATH = [cwd + "/mpl"]
+
+# add common include
+inc = inc + [cwd]
+inc = inc + [cwd + "/driver/eMPL"]
+inc = inc + [cwd + "/driver/include"]
+inc = inc + [cwd + "/driver/stm32L"]
+inc = inc + [cwd + "/eMPL-hal"]
+inc = inc + [cwd + "/mllite"]
+inc = inc + [cwd + "/mpl"] # only support M0 M3 M4 M4f
+
+# add basic code
+src = src + Glob('./driver/eMPL/*.c')
+src = src + Glob('./driver/stm32L/*.c')
+src = src + Glob('./eMPL-hal/*.c')
+src = src + Glob('./mllite/*.c')
+
+LOCAL_CCFLAGS = ''
+
+if rtconfig.CROSS_TOOL == 'gcc':
+    LOCAL_CCFLAGS += ' -std=c99'
+elif rtconfig.CROSS_TOOL == 'keil':
+    LOCAL_CCFLAGS += ' --c99 --gnu -g -W'
+
+# group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MotionDriver'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS, LIBS = libs, LIBPATH = LIBPATH)
+
+group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MotionDriver'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+
+Return('group')
