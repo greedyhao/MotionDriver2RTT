@@ -114,7 +114,65 @@ rt_err_t mpu_dmp_init()
         rt_kprintf("mpu_set_dmp_state..\n");
 		res=mpu_set_dmp_state(1);	//使能DMP
 		if(res)return 11; 
+
+//         if(mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL)==0)	//mpu_set_sensor
+// 		{
+// //			HAL_UART_Transmit(&huart1, TestDMP1,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+//             rt_kprintf("mpu_set_sensors..\n");
+// 		}
+// 		if(mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL)==0)	//mpu_configure_fifo
+// 		{
+//             rt_kprintf("mpu_configure_fifo..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP2,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+// 		if(mpu_set_sample_rate(DEFAULT_MPU_HZ)==0)   	  		//mpu_set_sample_rate
+// 		{
+//             rt_kprintf("mpu_set_sample_rate..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP3,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+// 		if(dmp_load_motion_driver_firmware()==0)  	  			//dmp_load_motion_driver_firmvare
+// 		{
+//             rt_kprintf("dmp_load_motion_driver_firmware..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP4,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+// 		if(dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation))==0) 	  //dmp_set_orientation
+// 		{
+//             rt_kprintf("dmp_set_orientation..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP5,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+// 	  if(dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
+// 		    DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO |
+// 		    DMP_FEATURE_GYRO_CAL)==0)		   	 					 //dmp_enable_feature
+// 		{
+//             rt_kprintf("dmp_enable_feature..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP6,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+// 		if(dmp_set_fifo_rate(DEFAULT_MPU_HZ)==0)  	 			 //dmp_set_fifo_rate
+// 		{
+//             rt_kprintf("mpu_set_sensors..\n");
+// //			HAL_UART_Transmit(&huart1, TestDMP7,3,10);	
+// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
+// 		}
+
+// 		run_self_test();		//自检
+
+// 		mpu_set_dmp_state(1);
     }
+    mpu_reset_fifo();
+
+    char str1[16];
+    char str2[16];
+    char str3[16];
+    int count = 10;
+    float pitch_sum;
+    float roll_sum;
+    float yaw_sum;
 
     while (1)
     {
@@ -123,9 +181,37 @@ rt_err_t mpu_dmp_init()
             // MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	//得到加速度传感器数据
 			// MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	//得到陀螺仪数据
             // rt_kprintf("%d %d %d %d %d %d \n", aacx,aacy,aacz,gyrox,gyroy,gyroz);
-            rt_kprintf("r:%d p:%d y:%d \n",(int)(roll*100),(int)(pitch*100),(int)(yaw*100));
+            // rt_kprintf("r:%d p:%d y:%d \n",(int)(roll*100),(int)(pitch*100),(int)(yaw*100));
+            // M_PI
+            if (count <= 10)
+            {
+                pitch_sum += pitch;
+                roll_sum += roll;
+                yaw_sum += yaw;
+                count++;
+            }
+            else
+            {
+                count = 0;
+                sprintf(str1,"pitch=%0.1f\t",(pitch_sum/10)*180/M_PI);
+                sprintf(str2,"roll=%0.1f\t",(roll_sum/10)*180/M_PI);
+                sprintf(str3,"yaw=%0.1f\n",(yaw_sum/10)*180/M_PI);
+                rt_kprintf(str1);
+                rt_kprintf(str2);
+                rt_kprintf(str3);
+                pitch_sum = 0;
+                roll_sum = 0;
+                yaw_sum = 0;
+            }
+            // sprintf(str1,"pitch=%0.1f\t",pitch*180/M_PI);
+            // sprintf(str2,"roll=%0.1f\t",roll*180/M_PI);
+            // sprintf(str3,"yaw=%0.1f\n",yaw*180/M_PI);
+            // rt_kprintf(str1);
+            // rt_kprintf(str2);
+            // rt_kprintf(str3);
+            // rt_kprintf("r:%d p:%d y:%d \n",(int)(roll* 180/M_PI),(int)(pitch*180/M_PI),(int)(yaw*180/M_PI));
         }
-        rt_thread_mdelay(1000);
+        rt_thread_mdelay(5);
     }
     
     return 0;

@@ -505,7 +505,7 @@ const struct gyro_reg_s reg = {
 };
 const struct hw_s hw = {
     .addr           = 0x68,
-    .max_fifo       = 1024,
+    .max_fifo       = 2048,
     .num_reg        = 118,
     .temp_sens      = 340,
     .temp_offset    = -521,
@@ -1828,18 +1828,16 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
         more[0] = 0;
         return -1;
     }
-    // rt_kprintf("fifo_count:%p,tmp[0]:%p,tmp[1]:%p\n",fifo_count,tmp[0],tmp[1]);
     if (fifo_count > (st.hw->max_fifo >> 1)) {
         /* FIFO is 50% full, better check overflow bit. */
         if (i2c_read(st.hw->addr, st.reg->int_status, 1, tmp))
             return -1;
         if (tmp[0] & BIT_FIFO_OVERFLOW) {
-            rt_kprintf("mpu_reset_fifo..\n");
+            rt_kprintf("BIT_FIFO_OVERFLOW mpu_reset_fifo..\n");
             mpu_reset_fifo();
             return -2;
         }
     }
-rt_kprintf("i2c_read3..\n");
     if (i2c_read(st.hw->addr, st.reg->fifo_r_w, length, data))
         return -1;
     more[0] = fifo_count / length - 1;

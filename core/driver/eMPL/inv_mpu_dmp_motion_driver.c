@@ -1276,7 +1276,6 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
      * cache this value and save some cycles.
      */
     sensors[0] = 0;
-rt_kprintf("mpu_read_fifo_stream..\n");
     /* Get a packet. */
     if (mpu_read_fifo_stream(dmp.packet_length, fifo_data, more))
         return -1;
@@ -1341,7 +1340,6 @@ rt_kprintf("mpu_read_fifo_stream..\n");
     /* Gesture data is at the end of the DMP packet. Parse it and call
      * the gesture callbacks (if registered).
      */
-    rt_kprintf("decode_gesture..\n");
     if (dmp.feature_mask & (DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT))
         decode_gesture(fifo_data + ii);
 
