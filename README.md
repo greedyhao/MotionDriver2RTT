@@ -39,8 +39,15 @@ MotionDriver package 遵循 LGPLv2.1 许可，详见 `LICENSE` 文件。
 ```
 RT-Thread online packages
     peripheral libraries and drivers  --->
-        mpu6xxx: Universal 6-axis sensor driver library  --->
+        MotionDriver2RTT: A package porting MotionDriver to RTT  --->
 ```
+
+进入 MotionDriver 软件包的配置菜单按自己的需求进行具体的配置
+
+    --- MotionDriver2RTT: A package porting MotionDriver to RTT                           
+        [*]   Enable MotionDriver2RTT sample
+           Version (latest)  --->
+Enable MotionDriver2RTT sample ：开启 MotionDriver2RTT 使用示例
 
 然后让 RT-Thread 的包管理器自动更新，或者使用 `pkgs --update` 命令更新包到 BSP 中。
 
