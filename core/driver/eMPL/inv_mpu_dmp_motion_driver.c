@@ -1312,7 +1312,7 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
         if ((quat_mag_sq < QUAT_MAG_SQ_MIN) ||
             (quat_mag_sq > QUAT_MAG_SQ_MAX)) {
             /* Quaternion is outside of the acceptable threshold. */
-            rt_kprintf("mpu_reset_fifo..\n");
+            rt_kprintf("Quaternion is outside of threshold\n");
             mpu_reset_fifo();
             sensors[0] = 0;
             return -1;

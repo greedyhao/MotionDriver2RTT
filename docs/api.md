@@ -1,4 +1,6 @@
-# Hello API
+# API
+
+# 有空补完
 
 ## 打招呼
 
@@ -17,13 +19,4 @@
 
 示例(可选)
 
-```c
-#include <hello.h>
 
-int func()
-{
-    hello_func();
-    
-    return 0;
-}
-```

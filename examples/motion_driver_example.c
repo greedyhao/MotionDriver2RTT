@@ -1,3 +1,14 @@
+/**
+ * @file motion_driver_example.c
+ * @author greedyhao
+ * @brief 硬件平台基于stm32f767与mpu6050
+ * @version 0.1
+ * @date 2019-05-03
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #include <rtthread.h>
 #include <finsh.h>
 
@@ -20,6 +31,7 @@
 unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
 
 struct rt_mpu_device *mpu_dev;
+extern int mpu_dev_init_flag; /* Flag to show if the mpu device is inited. */
 
 //q30，q16格式,long转float时的除数.
 #define q30  1073741824.0f
@@ -29,10 +41,10 @@ struct rt_mpu_device *mpu_dev;
 static signed char gyro_orientation[9] = { 1, 0, 0,
                                            0, 1, 0,
                                            0, 0, 1};
-//磁力计方向设置
-static signed char comp_orientation[9] = { 0, 1, 0,
-                                           1, 0, 0,
-                                           0, 0,-1};
+// //磁力计方向设置
+// static signed char comp_orientation[9] = { 0, 1, 0,
+//                                            1, 0, 0,
+//                                            0, 0,-1};
 
 rt_err_t mpu_dmp_init()
 {
@@ -42,11 +54,15 @@ rt_err_t mpu_dmp_init()
     unsigned short gyro_rate, gyro_fsr;
     float pitch,roll,yaw; 	        //欧拉角
 	short aacx,aacy,aacz;	        //加速度传感器原始数据
-	short gyrox,gyroy,gyroz;        //陀螺仪原始数据
+	// short gyrox,gyroy,gyroz;        //陀螺仪原始数据
     // unsigned short compass_fsr;
 
     /* Initialize mpu6xxx, The parameter is RT_NULL, means auto probing for i2c*/
     mpu_dev = rt_mpu_init(RT_MPU_DEVICE_NAME, RT_NULL);
+    if (!mpu_dev)
+        return -1;
+    else
+        mpu_dev_init_flag = 1;
     
     res = mpu_init(&int_param);
     rt_kprintf("mpu_init end\n");
@@ -61,7 +77,7 @@ rt_err_t mpu_dmp_init()
         inv_enable_quaternion();
         inv_enable_9x_sensor_fusion();
         inv_enable_fast_nomot();
-        // inv_enable_gyro_tc();
+        inv_enable_gyro_tc();
         // inv_enable_vector_compass_cal();
         // inv_enable_magnetic_disturbance();
         inv_enable_eMPL_outputs();
@@ -70,6 +86,7 @@ rt_err_t mpu_dmp_init()
         if(res)return 1;
         rt_kprintf("mpu_set_sensors..\n");
 		res=mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置所需要的传感器
+        rt_thread_mdelay(3);
 		if(res)return 2; 
         rt_kprintf("mpu_configure_fifo..\n");
 		res=mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);   //设置FIFO
@@ -114,112 +131,36 @@ rt_err_t mpu_dmp_init()
         rt_kprintf("mpu_set_dmp_state..\n");
 		res=mpu_set_dmp_state(1);	//使能DMP
 		if(res)return 11; 
-
-//         if(mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL)==0)	//mpu_set_sensor
-// 		{
-// //			HAL_UART_Transmit(&huart1, TestDMP1,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-//             rt_kprintf("mpu_set_sensors..\n");
-// 		}
-// 		if(mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL)==0)	//mpu_configure_fifo
-// 		{
-//             rt_kprintf("mpu_configure_fifo..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP2,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-// 		if(mpu_set_sample_rate(DEFAULT_MPU_HZ)==0)   	  		//mpu_set_sample_rate
-// 		{
-//             rt_kprintf("mpu_set_sample_rate..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP3,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-// 		if(dmp_load_motion_driver_firmware()==0)  	  			//dmp_load_motion_driver_firmvare
-// 		{
-//             rt_kprintf("dmp_load_motion_driver_firmware..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP4,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-// 		if(dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation))==0) 	  //dmp_set_orientation
-// 		{
-//             rt_kprintf("dmp_set_orientation..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP5,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-// 	  if(dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT | DMP_FEATURE_TAP |
-// 		    DMP_FEATURE_ANDROID_ORIENT | DMP_FEATURE_SEND_RAW_ACCEL | DMP_FEATURE_SEND_CAL_GYRO |
-// 		    DMP_FEATURE_GYRO_CAL)==0)		   	 					 //dmp_enable_feature
-// 		{
-//             rt_kprintf("dmp_enable_feature..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP6,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-// 		if(dmp_set_fifo_rate(DEFAULT_MPU_HZ)==0)  	 			 //dmp_set_fifo_rate
-// 		{
-//             rt_kprintf("mpu_set_sensors..\n");
-// //			HAL_UART_Transmit(&huart1, TestDMP7,3,10);	
-// //		  HAL_UART_Transmit(&huart1, CReturn,2,10);
-// 		}
-
-// 		run_self_test();		//自检
-
-// 		mpu_set_dmp_state(1);
     }
     mpu_reset_fifo();
 
     char str1[16];
     char str2[16];
     char str3[16];
-    int count = 10;
-    float pitch_sum;
-    float roll_sum;
-    float yaw_sum;
-
+    
     while (1)
     {
-        if(mpu_dmp_get_data(&pitch,&roll,&yaw)==0)
+        if(mpu_mpl_get_data(&pitch,&roll,&yaw)==0)
         {
-            // MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	//得到加速度传感器数据
-			// MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	//得到陀螺仪数据
-            // rt_kprintf("%d %d %d %d %d %d \n", aacx,aacy,aacz,gyrox,gyroy,gyroz);
-            // rt_kprintf("r:%d p:%d y:%d \n",(int)(roll*100),(int)(pitch*100),(int)(yaw*100));
-            // M_PI
-            if (count <= 10)
-            {
-                pitch_sum += pitch;
-                roll_sum += roll;
-                yaw_sum += yaw;
-                count++;
-            }
-            else
-            {
-                count = 0;
-                sprintf(str1,"pitch=%0.1f\t",(pitch_sum/10)*180/M_PI);
-                sprintf(str2,"roll=%0.1f\t",(roll_sum/10)*180/M_PI);
-                sprintf(str3,"yaw=%0.1f\n",(yaw_sum/10)*180/M_PI);
-                rt_kprintf(str1);
-                rt_kprintf(str2);
-                rt_kprintf(str3);
-                pitch_sum = 0;
-                roll_sum = 0;
-                yaw_sum = 0;
-            }
-            // sprintf(str1,"pitch=%0.1f\t",pitch*180/M_PI);
-            // sprintf(str2,"roll=%0.1f\t",roll*180/M_PI);
-            // sprintf(str3,"yaw=%0.1f\n",yaw*180/M_PI);
-            // rt_kprintf(str1);
-            // rt_kprintf(str2);
-            // rt_kprintf(str3);
-            // rt_kprintf("r:%d p:%d y:%d \n",(int)(roll* 180/M_PI),(int)(pitch*180/M_PI),(int)(yaw*180/M_PI));
+            sprintf(str1,"pitch=%0.1f\t",pitch);
+            sprintf(str2,"roll=%0.1f\t",roll);
+            sprintf(str3,"yaw=%0.1f\n",yaw);
+            rt_kprintf(str1);
+            rt_kprintf(str2);
+            rt_kprintf(str3);
         }
-        rt_thread_mdelay(5);
+        // rt_thread_mdelay(10);
     }
     
     return 0;
 }
 
-//MPU9250自测试
-//返回值:0,正常
-//    其他,失败
+
+/**
+ * @brief MPU6050自测试
+ * 
+ * @return uint8_t 0,正常 其他,失败
+ */
 uint8_t run_self_test(void)
 {
 	int result;
@@ -250,12 +191,14 @@ uint8_t run_self_test(void)
 	}else return 1;
 }
 
-//得到dmp处理后的数据(注意,本函数需要比较多堆栈,局部变量有点多)
-//pitch:俯仰角 精度:0.1°   范围:-90.0° <---> +90.0°
-//roll:横滚角  精度:0.1°   范围:-180.0°<---> +180.0°
-//yaw:航向角   精度:0.1°   范围:-180.0°<---> +180.0°
-//返回值:0,正常
-//    其他,失败
+/**
+ * @brief 得到dmp处理后的数据(注意,本函数需要比较多堆栈,局部变量有点多)
+ * 
+ * @param pitch 俯仰角 精度:0.1°   范围:-90.0° <---> +90.0°
+ * @param roll 横滚角  精度:0.1°   范围:-180.0°<---> +180.0°
+ * @param yaw 精度:0.1°   范围:-180.0°<---> +180.0°
+ * @return uint8_t 0,正常 其他,失败
+ */
 uint8_t mpu_dmp_get_data(float *pitch,float *roll,float *yaw)
 {
 	float q0=1.0f,q1=0.0f,q2=0.0f,q3=0.0f;
@@ -288,12 +231,14 @@ uint8_t mpu_dmp_get_data(float *pitch,float *roll,float *yaw)
 	return 0;
 }
 
-//得到mpl处理后的数据(注意,本函数需要比较多堆栈,局部变量有点多)
-//pitch:俯仰角 精度:0.1°   范围:-90.0° <---> +90.0°
-//roll:横滚角  精度:0.1°   范围:-180.0°<---> +180.0°
-//yaw:航向角   精度:0.1°   范围:-180.0°<---> +180.0°
-//返回值:0,正常
-//    其他,失败
+/**
+ * @brief 得到mpl处理后的数据(注意,本函数需要比较多堆栈,局部变量有点多)
+ * 
+ * @param pitch pitch:俯仰角 精度:0.1°   范围:-90.0° <---> +90.0°
+ * @param roll roll:横滚角  精度:0.1°   范围:-180.0°<---> +180.0°
+ * @param yaw yaw:航向角   精度:0.1°   范围:-180.0°<---> +180.0°
+ * @return uint8_t 0,正常 其他,失败
+ */
 uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
 {
 	unsigned long sensor_timestamp,timestamp;
@@ -303,12 +248,10 @@ uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
     long data[9];
     int8_t accuracy;
     
-    rt_kprintf("dmp_read_fifo..\n");
 	if(dmp_read_fifo(gyro, accel_short, quat, &sensor_timestamp, &sensors,&more))return 1;	 
 
     if(sensors&INV_XYZ_GYRO)
     {
-        rt_kprintf("inv_build_gyro..\n");
         inv_build_gyro(gyro,sensor_timestamp);          //把新数据发送给MPL
         mpu_get_temperature(&temperature,&sensor_timestamp);
         inv_build_temp(temperature,sensor_timestamp);   //把温度值发给MPL，只有陀螺仪需要温度值
@@ -319,7 +262,6 @@ uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
         accel[0] = (long)accel_short[0];
         accel[1] = (long)accel_short[1];
         accel[2] = (long)accel_short[2];
-        rt_kprintf("inv_build_accel..\n");
         inv_build_accel(accel,0,sensor_timestamp);      //把加速度值发给MPL
     }
     
@@ -330,9 +272,7 @@ uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
     //     compass[2]=(long)compass_short[2];
     //     inv_build_compass(compass,0,sensor_timestamp); //把磁力计值发给MPL
     // }
-    rt_kprintf("inv_execute_on_data..\n");
     inv_execute_on_data();
-    rt_kprintf("inv_get_sensor_type_euler..\n");
     inv_get_sensor_type_euler(data,&accuracy,&timestamp);
     
     *roll  = (data[0]/q16);
@@ -341,6 +281,11 @@ uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
 	return 0;
 }
 
+/**
+ * @brief motion_driver初始化线程
+ * 
+ * @return int 
+ */
 int motion_driver_example(void)
 {
     rt_err_t ret = RT_EOK;
@@ -348,7 +293,7 @@ int motion_driver_example(void)
 
     thread = rt_thread_create("motion_driver",
                             mpu_dmp_init, RT_NULL,
-                            2*1024, 5, 10);
+                            2*1024, 5, 10); /* 线程轮转时间要与mpu的采样率对应 */
     if(thread == RT_NULL)
     {
         return RT_ERROR;
