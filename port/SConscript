@@ -4,6 +4,6 @@ cwd     = GetCurrentDir()
 src     = Glob('*.c') + Glob('*.cpp')
 CPPPATH = [cwd]
 
-group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MotionDriver'], CPPPATH = CPPPATH)
+group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MOTIONDRIVER2RTT'], CPPPATH = CPPPATH)
 
 Return('group')

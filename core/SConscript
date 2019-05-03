@@ -32,8 +32,8 @@ if rtconfig.CROSS_TOOL == 'gcc':
 elif rtconfig.CROSS_TOOL == 'keil':
     LOCAL_CCFLAGS += ' --c99 --gnu -g -W'
 
-# group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MotionDriver'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS, LIBS = libs, LIBPATH = LIBPATH)
+# group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MOTIONDRIVER2RTT'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS, LIBS = libs, LIBPATH = LIBPATH)
 
-group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MotionDriver'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
+group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MOTIONDRIVER2RTT'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS)
 
 Return('group')

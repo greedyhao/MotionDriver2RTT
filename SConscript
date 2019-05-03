@@ -7,7 +7,7 @@ cwd = GetCurrentDir()
 objs = []
 list = os.listdir(cwd)
 
-if GetDepend('PKG_USING_MotionDriver'):
+if GetDepend('PKG_USING_MOTIONDRIVER2RTT'):
     for d in list:
         path = os.path.join(cwd, d)
         if os.path.isfile(os.path.join(path, 'SConscript')):
