@@ -36,9 +36,6 @@
 #define PACKET_QUAT     (2)
 #define PACKET_DATA     (3)
 
-
-// FILE _f = {0};
-
 /**
  *  @brief      Prints a variable argument log message.
  *  USB output will be formatted as follows:\n

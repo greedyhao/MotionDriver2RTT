@@ -7,7 +7,7 @@
 #include "mltypes.h"
 
 int mpu_dev_init_flag = 0;
-extern struct rt_mpu_device *mpu_dev;
+struct rt_mpu_device *mpu_dev;
 
 /**
  * This function writes the value of the register for rt_mpu

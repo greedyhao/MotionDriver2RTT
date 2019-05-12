@@ -30,7 +30,7 @@
 
 unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
 
-struct rt_mpu_device *mpu_dev;
+extern struct rt_mpu_device *mpu_dev;
 extern int mpu_dev_init_flag; /* Flag to show if the mpu device is inited. */
 
 //q30，q16格式,long转float时的除数.
