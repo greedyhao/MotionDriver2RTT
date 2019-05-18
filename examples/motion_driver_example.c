@@ -46,9 +46,40 @@ static signed char gyro_orientation[9] = { 1, 0, 0,
 //                                            1, 0, 0,
 //                                            0, 0,-1};
 
-rt_err_t mpu_dmp_init()
+#define EVENT_MD_LOOP		(1<<0)
+
+static struct rt_timer timer_motion;
+static struct rt_event event_motion;
+
+static void timer_motion_update(void* parameter)
 {
-    rt_err_t res = 0;
+	rt_event_send(&event_motion, EVENT_MD_LOOP);
+}
+
+void motion_loop(float pitch,float roll,float yaw)
+{
+    char str1[16];
+    char str2[16];
+    // char str3[16];
+
+	if(mpu_mpl_get_data(&pitch,&roll,&yaw)==0)
+    {
+        sprintf(str1,"pitch=%0.1f\t",pitch);
+        sprintf(str2,"roll=%0.1f\t",roll);
+        // sprintf(str3,"yaw=%0.1f\n",yaw);
+        rt_kprintf(str1);
+        rt_kprintf(str2);
+        // rt_kprintf(str3);
+        rt_kprintf("\n");
+    }
+}
+
+void motion_entry(void *parameter)
+{
+	rt_err_t res;
+	rt_uint32_t recv_set = 0;
+	rt_uint32_t wait_set = EVENT_MD_LOOP;
+
     struct int_param_s int_param;
     unsigned char accel_fsr;
     unsigned short gyro_rate, gyro_fsr;
@@ -134,27 +165,51 @@ rt_err_t mpu_dmp_init()
     }
     mpu_reset_fifo();
 
-    char str1[16];
-    char str2[16];
-    char str3[16];
-    
-    while (1)
-    {
-        if(mpu_mpl_get_data(&pitch,&roll,&yaw)==0)
-        {
-            sprintf(str1,"pitch=%0.1f\t",pitch);
-            sprintf(str2,"roll=%0.1f\t",roll);
-            sprintf(str3,"yaw=%0.1f\n",yaw);
-            rt_kprintf(str1);
-            rt_kprintf(str2);
-            rt_kprintf(str3);
-        }
-        // rt_thread_mdelay(10);
-    }
-    
-    return 0;
+    // char str1[16];
+    // char str2[16];
+    // // char str3[16];
+
+	/* initial codes .. */
+
+	/* create event */
+	res = rt_event_init(&event_motion, "event_motion", RT_IPC_FLAG_FIFO);
+
+	/* register timer event */
+	rt_timer_init(&timer_motion, "timer_motion",
+					timer_motion_update,
+					RT_NULL,
+					1,
+					RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_SOFT_TIMER);
+	rt_timer_start(&timer_motion);
+	
+	while(1)
+	{
+		res = rt_event_recv(&event_motion, wait_set, RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR, 
+								RT_WAITING_FOREVER, &recv_set);
+		
+		if(res == RT_EOK){
+			if(recv_set & EVENT_MD_LOOP){
+				motion_loop(pitch,roll,yaw);
+			}
+		}
+	}
 }
 
+int motion_init(void)
+{
+	rt_thread_t thread = RT_NULL; 
+
+	thread = rt_thread_create("motion_d", motion_entry, RT_NULL, 1024, 10, 10);
+
+	if(thread == RT_NULL)
+    {
+        return RT_ERROR;
+    }
+    rt_thread_startup(thread);
+
+    return RT_EOK;
+}
+INIT_APP_EXPORT(motion_init);
 
 /**
  * @brief MPU6050自测试
@@ -280,26 +335,3 @@ uint8_t mpu_mpl_get_data(float *pitch,float *roll,float *yaw)
     *yaw   = -data[2] / q16;
 	return 0;
 }
-
-/**
- * @brief motion_driver初始化线程
- * 
- * @return int 
- */
-int motion_driver_example(void)
-{
-    rt_err_t ret = RT_EOK;
-    rt_thread_t thread = RT_NULL;
-
-    thread = rt_thread_create("motion_driver",
-                            mpu_dmp_init, RT_NULL,
-                            2*1024, 5, 10); /* 线程轮转时间要与mpu的采样率对应 */
-    if(thread == RT_NULL)
-    {
-        return RT_ERROR;
-    }
-    rt_thread_startup(thread);
-
-    return RT_EOK;
-}
-MSH_CMD_EXPORT(motion_driver_example, motion driver test function);

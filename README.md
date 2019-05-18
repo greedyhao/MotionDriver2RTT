@@ -82,6 +82,9 @@ const struct hw_s hw = {
 
 目前mpl库需要手动添加到工程，使用SConscript添加不进工程，暂时不知道怎么解决
 
+### threshold问题
+`Quaternion is outside of threshold` 如果报这个错误，需要将线程优先级提升
+
 ## 5、联系方式 & 感谢
 
 * 维护：greedyhao
