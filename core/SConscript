@@ -7,8 +7,8 @@ cwd     = GetCurrentDir()
 # init src and inc vars
 inc = []
 src = []
-# libs = 'libmpllib.lib'
-# LIBPATH = [cwd + "/mpl"]
+# libs = ['libmpllib']
+# LIBPATH = [cwd + '/mpl']
 
 # add common include
 inc = inc + [cwd]

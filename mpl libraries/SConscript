@@ -1,0 +1,49 @@
+from building import *
+import rtconfig
+
+cwd     = GetCurrentDir()
+src     = Split('''
+''')
+libs    = ['libmpllib']
+
+if GetDepend("ARCH_ARM_CORTEX_M0") == True:
+    if rtconfig.CROSS_TOOL == "gcc":
+        LIBPATH = [cwd + '/arm/gcc4.9.3/liblibmplmpu_m0']
+    if rtconfig.CROSS_TOOL == "iar":
+        LIBPATH = [cwd + '/arm/IAR/libmpllib_IAR_M0']
+    if rtconfig.CROSS_TOOL == "keil":
+        LIBPATH = [cwd + '/arm/Keil/libmpllib_Keil_M0']
+elif GetDepend("ARCH_ARM_CORTEX_M0+") == True:
+    if rtconfig.CROSS_TOOL == "gcc":
+        LIBPATH = [cwd + '/arm/gcc4.9.3/liblibmplmpu_m0']
+    if rtconfig.CROSS_TOOL == "iar":
+        LIBPATH = [cwd + '/arm/IAR/libmpllib_IAR_M0+']
+    if rtconfig.CROSS_TOOL == "keil":
+        LIBPATH = [cwd + '/arm/Keil/libmpllib_Keil_M0+']
+elif GetDepend("ARCH_ARM_CORTEX_M3") == True:
+    if rtconfig.CROSS_TOOL == "gcc":
+        LIBPATH = [cwd + '/arm/gcc4.9.3/liblibmplmpu_m3']
+    if rtconfig.CROSS_TOOL == "iar":
+        LIBPATH = [cwd + '/arm/IAR/libmpllib_IAR_M3']
+    if rtconfig.CROSS_TOOL == "keil":
+        LIBPATH = [cwd + '/arm/Keil/libmpllib_Keil_M3']
+elif GetDepend("ARCH_ARM_CORTEX_M4") == True:
+    if rtconfig.CROSS_TOOL == "gcc":
+        LIBPATH = [cwd + '/arm/gcc4.9.3/liblibmplmpu_m4_nofp']
+    if rtconfig.CROSS_TOOL == "iar":
+        LIBPATH = [cwd + '/arm/IAR/libmpllib_IAR_M4']
+    if rtconfig.CROSS_TOOL == "keil":
+        LIBPATH = [cwd + '/arm/Keil/libmpllib_Keil_M4']
+elif GetDepend("ARCH_ARM_CORTEX_M7") == True:
+    if rtconfig.CROSS_TOOL == "gcc":
+        LIBPATH = [cwd + '/arm/gcc4.9.3/liblibmplmpu_m4_hardfp']
+    if rtconfig.CROSS_TOOL == "iar":
+        LIBPATH = [cwd + '/arm/IAR/libmpllib_IAR_M4F']
+    if rtconfig.CROSS_TOOL == "keil":
+        LIBPATH = [cwd + '/arm/Keil/libmpllib_Keil_M4FP/']
+else:
+    "error architecture"
+
+group = DefineGroup('MotionDriver', src, depend = ['PKG_USING_MOTIONDRIVER2RTT'], LIBS = libs, LIBPATH = LIBPATH)
+
+Return('group')
