@@ -2,7 +2,7 @@
 
 ## 软件包地址
 
-- https://github.com/RT-Thread-packages/hello
+- https://github.com/greedyhao/MotionDriver2RTT
 
 ## 文档列表
 
