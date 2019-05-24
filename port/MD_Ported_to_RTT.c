@@ -6,6 +6,10 @@
 #include "inv_mpu.h"
 #include "mltypes.h"
 
+// #define MD_DEBUG
+#define LOG_TAG "md.example"
+#include "md_log.h"
+
 int mpu_dev_init_flag = 0;
 struct rt_mpu_device *mpu_dev;
 
@@ -56,6 +60,7 @@ static rt_err_t rt_mpu_write_reg(struct rt_mpu_device *dev, rt_uint8_t reg, unsi
 #ifdef RT_USING_SPI
         res = rt_spi_send_then_send((struct rt_spi_device *)dev->bus, &reg, 1, &data, 1);
 #endif
+        LOG_E("Unsupported device bus type:'%d'!", dev->bus->type);
     }
     return res;
 }
@@ -110,6 +115,7 @@ static rt_err_t rt_mpu_read_regs(struct rt_mpu_device *dev, rt_uint8_t reg, rt_u
 
         res = rt_spi_send_then_recv((struct rt_spi_device *)dev->bus, &tmp, 1, buf, len);
 #endif
+        LOG_E("Unsupported device bus type:'%d'!", dev->bus->type);
     }
     return res;
 }
@@ -134,14 +140,14 @@ struct rt_mpu_device *rt_mpu_init(const char *dev_name, rt_uint8_t param, struct
     dev = rt_calloc(1, sizeof(struct rt_mpu_device));
     if (dev == RT_NULL)
     {
-        log_e("Can't allocate memory for rt_mpu device on '%s' ", dev_name);
+        LOG_E("Can't allocate memory for rt_mpu device on '%s' ", dev_name);
         goto __exit;
     }
 
     dev->bus = rt_device_find(dev_name);
     if (dev->bus == RT_NULL)
     {
-        log_e("Can't find device:'%s'", dev_name);
+        LOG_E("Can't find device:'%s'", dev_name);
         goto __exit;
     }
     if (dev->bus->type == RT_Device_Class_I2CBUS)
@@ -160,11 +166,11 @@ struct rt_mpu_device *rt_mpu_init(const char *dev_name, rt_uint8_t param, struct
                 dev->i2c_addr = 0x69;
                 if (rt_mpu_read_regs(dev, 0x75, 1, &reg) != RT_EOK)
                 {
-                    log_e("Can't find device at '%s'!", dev_name);
+                    LOG_E("Can't find device at '%s'!", dev_name);
                     goto __exit;
                 }
             }
-            log_i("Device i2c address is:'0x%x'!", dev->i2c_addr);
+            LOG_I("Device i2c address is:'0x%x'!", dev->i2c_addr);
         }
     }
 
@@ -182,13 +188,13 @@ struct rt_mpu_device *rt_mpu_init(const char *dev_name, rt_uint8_t param, struct
     }
     else
     {
-        log_e("Unsupported device:'%s'!", dev_name);
+        LOG_E("Unsupported device:'%s'!", dev_name);
         goto __exit;
     }
 
     if (rt_mpu_read_regs(dev, 0x75, 1, &reg) != RT_EOK)
     {
-        log_e("Failed to read device id!");
+        LOG_E("Failed to read device id!");
         goto __exit;
     }
     
@@ -197,22 +203,22 @@ struct rt_mpu_device *rt_mpu_init(const char *dev_name, rt_uint8_t param, struct
     switch (dev->id)
     {
     case 0x68:
-        log_i("Find device: mpu6050!");
+        LOG_I("Find device: mpu6050!");
         break;
     case 0x70:
-        log_i("Find device: mpu6500!");
+        LOG_I("Find device: mpu6500!");
         break;
     case 0x71:
-        log_i("Find device: mpu9250!");
+        LOG_I("Find device: mpu9250!");
         break;
     case 0xAF:
-        log_i("Find device: icm20608!");
+        LOG_I("Find device: icm20608!");
         break;
     case 0xFF:
-        log_e("No device connection!");
+        LOG_E("No device connection!");
         goto __exit;
     default:
-        log_i("Unknown device id: 0x%x!", reg);
+        LOG_I("Unknown device id: 0x%x!", reg);
     }
 
     return dev;
@@ -248,7 +254,7 @@ rt_err_t imu_i2c_write_regs(unsigned char slave_addr, unsigned char reg_addr, un
     }
     else
     {
-        log_e("i2c trans error!\n");
+        LOG_E("i2c trans error!");
         res = -RT_ERROR;
     }
     return res;
@@ -264,7 +270,7 @@ rt_err_t imu_i2c_read_regs(unsigned char slave_addr, unsigned char reg_addr, uns
     }
     else
     {
-        log_e("i2c trans error!\n");
+        LOG_E("i2c trans error!");
         res = -RT_ERROR;
     }
     return res;

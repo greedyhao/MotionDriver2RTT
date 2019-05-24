@@ -23,6 +23,11 @@
 #include <string.h>
 #include <math.h>
 #include "inv_mpu.h"
+
+// #define MD_DEBUG
+#define LOG_TAG "md.inv"
+#include "md_log.h"
+
 #include "MD_Ported_to_RTT.h"
 // #define MPU6050
 
@@ -1833,7 +1838,7 @@ int mpu_read_fifo_stream(unsigned short length, unsigned char *data,
         if (i2c_read(st.hw->addr, st.reg->int_status, 1, tmp))
             return -1;
         if (tmp[0] & BIT_FIFO_OVERFLOW) {
-            rt_kprintf("BIT_FIFO_OVERFLOW mpu_reset_fifo..\n");
+            LOG_E("BIT_FIFO_OVERFLOW mpu_reset_fifo..");
             mpu_reset_fifo();
             return -2;
         }

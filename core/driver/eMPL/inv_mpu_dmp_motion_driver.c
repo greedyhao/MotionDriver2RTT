@@ -24,6 +24,10 @@
 #include "dmpKey.h"
 #include "dmpmap.h"
 
+// #define MD_DEBUG
+#define LOG_TAG "md.inv.dmp"
+#include "md_log.h"
+
 #include "MD_Ported_to_RTT.h"
 
 /* The following functions must be defined for this platform:
@@ -1312,7 +1316,7 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
         if ((quat_mag_sq < QUAT_MAG_SQ_MIN) ||
             (quat_mag_sq > QUAT_MAG_SQ_MAX)) {
             /* Quaternion is outside of the acceptable threshold. */
-            rt_kprintf("Quaternion is outside of threshold\n");
+            LOG_E("Quaternion is outside of threshold");
             mpu_reset_fifo();
             sensors[0] = 0;
             return -1;

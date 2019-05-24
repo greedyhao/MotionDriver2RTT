@@ -10,7 +10,12 @@
  */
 
 #include <rtthread.h>
+#include <dfs_posix.h> 
 #include <finsh.h>
+
+// #define MD_DEBUG
+#define LOG_TAG "md.example"
+#include "md_log.h"
 
 #include "MD_Ported_to_RTT.h"
 #include "motion_driver_example.h"
@@ -26,7 +31,7 @@
 #include "packet.h"
 /* Private typedef -----------------------------------------------------------*/
 /* The bus name of the mpu. */
-#define RT_MPU_DEVICE_NAME "i2c2"
+#define RT_MPU_DEVICE_NAME "i2c1"
 
 unsigned char *mpl_key = (unsigned char*)"eMPL 5.1";
 
@@ -58,19 +63,14 @@ static void timer_motion_update(void* parameter)
 
 void motion_loop(float pitch,float roll,float yaw)
 {
-    char str1[16];
-    char str2[16];
-    // char str3[16];
+    char str[48];    
 
 	if(mpu_mpl_get_data(&pitch,&roll,&yaw)==0)
     {
-        sprintf(str1,"pitch=%0.1f\t",pitch);
-        sprintf(str2,"roll=%0.1f\t",roll);
-        // sprintf(str3,"yaw=%0.1f\n",yaw);
-        rt_kprintf(str1);
-        rt_kprintf(str2);
-        // rt_kprintf(str3);
-        rt_kprintf("\n");
+        sprintf(str,"pitch=%0.1f\troll=%0.1f\t",pitch,roll);
+        // sprintf(str,"pitch=%0.1f\troll=%0.1f\tyaw=%0.1f",pitch,roll,yaw);
+        
+        LOG_I(str);
     }
 }
 
@@ -96,15 +96,15 @@ void motion_entry(void *parameter)
         mpu_dev_init_flag = 1;
     
     res = mpu_init(&int_param);
-    rt_kprintf("mpu_init end\n");
+    LOG_D("mpu_init end");
     if (res) {
-        log_e("Could not initialize gyro.\n");
+        LOG_E("Could not initialize gyro.");
     }
     else
     {
-        rt_kprintf("inv_init_mpl..\n");
-        res=inv_init_mpl();     //初始化MPL
-        if(res)return 1;
+        LOG_D("inv_init_mpl..");
+        res = inv_init_mpl();     //初始化MPL
+        if (res) return 1;
         inv_enable_quaternion();
         inv_enable_9x_sensor_fusion();
         inv_enable_fast_nomot();
@@ -112,20 +112,20 @@ void motion_entry(void *parameter)
         // inv_enable_vector_compass_cal();
         // inv_enable_magnetic_disturbance();
         inv_enable_eMPL_outputs();
-        rt_kprintf("inv_start_mpl..\n");
-        res=inv_start_mpl();    //开启MPL
-        if(res)return 1;
-        rt_kprintf("mpu_set_sensors..\n");
-		res=mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置所需要的传感器
+        LOG_D("inv_start_mpl..");
+        res = inv_start_mpl();    //开启MPL
+        if(res) return 1;
+        LOG_D("mpu_set_sensors..");
+		res = mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置所需要的传感器
         rt_thread_mdelay(3);
-		if(res)return 2; 
-        rt_kprintf("mpu_configure_fifo..\n");
-		res=mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);   //设置FIFO
-		if(res)return 3; 
-        rt_kprintf("mpu_set_sample_rate..\n");
-		res=mpu_set_sample_rate(DEFAULT_MPU_HZ);	            //设置采样率
-		if(res)return 4; 
-        // rt_kprintf("mpu_set_compass_sample_rate..\n");
+		if (res) return 2; 
+        LOG_D("mpu_configure_fifo..");
+		res = mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);   //设置FIFO
+		if (res) return 3; 
+        LOG_D("mpu_set_sample_rate..");
+		res = mpu_set_sample_rate(DEFAULT_MPU_HZ);	            //设置采样率
+		if (res) return 4; 
+        // LOG_D("mpu_set_compass_sample_rate..");
         // res=mpu_set_compass_sample_rate(1000/COMPASS_READ_MS);  //设置磁力计采样率
         // if(res)return 5;
         mpu_get_sample_rate(&gyro_rate);
@@ -142,32 +142,28 @@ void motion_entry(void *parameter)
         // inv_set_compass_orientation_and_scale(
         //     inv_orientation_matrix_to_scalar(comp_orientation),(long)compass_fsr<<15);
             
-        rt_kprintf("dmp_load_motion_driver_firmware..\n");
-		res=dmp_load_motion_driver_firmware();		             //加载dmp固件
-		if(res)return 6; 
-        rt_kprintf("dmp_set_orientation..\n");
-		res=dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation));//设置陀螺仪方向
-		if(res)return 7; 
-        rt_kprintf("dmp_enable_feature..\n");
-		res=dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT|DMP_FEATURE_TAP|	            //设置dmp功能
+        LOG_D("dmp_load_motion_driver_firmware..");
+		res = dmp_load_motion_driver_firmware();		             //加载dmp固件
+		if (res) return 6; 
+        LOG_D("dmp_set_orientation..");
+		res = dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation));//设置陀螺仪方向
+		if (res) return 7; 
+        LOG_D("dmp_enable_feature..");
+		res = dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT|DMP_FEATURE_TAP|	            //设置dmp功能
 		    DMP_FEATURE_ANDROID_ORIENT|DMP_FEATURE_SEND_RAW_ACCEL|DMP_FEATURE_SEND_CAL_GYRO|
 		    DMP_FEATURE_GYRO_CAL);
-		if(res)return 8; 
-        rt_kprintf("dmp_set_fifo_rate..\n");
-		res=dmp_set_fifo_rate(DEFAULT_MPU_HZ);	//设置DMP输出速率(最大不超过200Hz)
-		if(res)return 9;   
-        rt_kprintf("run_self_test..\n");
-		res=run_self_test();		//自检
-		if(res)return 10;    
-        rt_kprintf("mpu_set_dmp_state..\n");
-		res=mpu_set_dmp_state(1);	//使能DMP
-		if(res)return 11; 
+		if (res) return 8; 
+        LOG_D("dmp_set_fifo_rate..");
+		res = dmp_set_fifo_rate(DEFAULT_MPU_HZ);	//设置DMP输出速率(最大不超过200Hz)
+		if (res) return 9;   
+        LOG_D("run_self_test..");
+		res = run_self_test();		//自检
+		if (res) return 10;    
+        LOG_D("mpu_set_dmp_state..");
+		res = mpu_set_dmp_state(1);	//使能DMP
+		if (res) return 11; 
     }
     mpu_reset_fifo();
-
-    // char str1[16];
-    // char str2[16];
-    // // char str3[16];
 
 	/* initial codes .. */
 
@@ -199,7 +195,7 @@ int motion_init(void)
 {
 	rt_thread_t thread = RT_NULL; 
 
-	thread = rt_thread_create("motion_d", motion_entry, RT_NULL, 1024, 10, 10);
+	thread = rt_thread_create("motion_d", motion_entry, RT_NULL, 1024, 10, 5);
 
 	if(thread == RT_NULL)
     {
@@ -209,7 +205,8 @@ int motion_init(void)
 
     return RT_EOK;
 }
-INIT_APP_EXPORT(motion_init);
+// INIT_APP_EXPORT(motion_init);
+MSH_CMD_EXPORT(motion_init, motion driver init);
 
 /**
  * @brief MPU6050自测试
