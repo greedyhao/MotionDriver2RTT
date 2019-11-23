@@ -10,7 +10,6 @@
  */
 
 #include <rtthread.h>
-#include <dfs_posix.h> 
 #include <finsh.h>
 
 // #define MD_DEBUG

@@ -53,13 +53,11 @@ Enable MotionDriver2RTT sample ：开启 MotionDriver2RTT 使用示例
 
 ## 3、使用 MotionDriver
 
-> 说明：在这里介绍 package 的移植步骤、使用方法、初始化流程、准备工作、API 等等，如果移植或 API 文档内容较多，可以将其独立至 `docs` 目录下。
-
 在打开 MotionDriver package 后，当进行 bsp 编译时，它会被加入到 bsp 工程中进行编译。
 
+* MotionDriver的应用手册在[`/documentation`](/documentation)下，快速翻阅可以方便使用
 * 完整的 API 手册可以访问这个[链接](docs/api.md)
 * 更多文档位于 [`/docs`](/docs) 下，使用前 **务必查看**
-* MotionDriver的应用手册在[`/documentation`](/documentation)下，快速翻阅可以方便使用
 
 ## 4、注意事项
 
@@ -80,7 +78,9 @@ const struct hw_s hw = {
 
 ### mpl高级特性库问题
 
-目前mpl库需要手动添加到工程，使用SConscript添加不进工程，暂时不知道怎么解决
+目前 mpl 高级库只支持 stm32 系列 mcu，因为 MotionDriver 只提供了 mpl 的预编译库，没开源
+
+example 中使用了的 mpl 库，所以非 stm32 系列 mcu 无法运行
 
 ### threshold问题
 `Quaternion is outside of threshold` 如果报这个错误，需要将线程优先级提升
